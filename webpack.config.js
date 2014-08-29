@@ -19,8 +19,8 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.jsx$/, loaders: ['react-hot', 'jsx'] },
-    ]
+      { test: /\.jsx$/,
+        loaders: ['react-hot', 'es6', 'jsx?harmony'] } ]
   },
   externals: {
     'showdown': 'window.Showdown'

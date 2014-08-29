@@ -1,9 +1,18 @@
 /** @jsx React.DOM */
 
-var Showdown = require('showdown'),
-    $ = require('jquery'),
-    React = require('react'),
-    converter = new Showdown.converter();
+//var Showdown = require('showdown'),
+//    $ = require('jquery'),
+//    React = require('react'),
+//    converter = new Showdown.converter();
+
+module $ from 'jquery';
+module React from 'react';
+
+// Showdown is not put into modules?
+// How to handle this with WebPack and ES6?
+
+//var Showdown = require('showdown');
+var converter = new Showdown.converter();
 
 var Comment = React.createClass({
   render: function() {
@@ -115,4 +124,4 @@ var CommentForm = React.createClass({
   }
 });
 
-module.exports = CommentBox;
+export { CommentBox }
