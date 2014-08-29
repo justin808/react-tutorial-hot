@@ -1,22 +1,13 @@
 /** @jsx React.DOM */
 
-//var Showdown = require('showdown'),
-//    $ = require('jquery'),
-//    React = require('react'),
-//    converter = new Showdown.converter();
-
 module $ from 'jquery';
 module React from 'react';
 
-// Showdown is not put into modules?
-// How to handle this with WebPack and ES6?
-
-//var Showdown = require('showdown');
-var converter = new Showdown.converter();
+var marked = require("marked");
 
 var Comment = React.createClass({
   render: function() {
-    var rawMarkup = converter.makeHtml(this.props.children.toString());
+    var rawMarkup = marked(this.props.children.toString());
     return (
       <div className="comment">
         <h2 className="commentAuthor">

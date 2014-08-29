@@ -9,7 +9,7 @@
     "express": "^4.8.6",
     "jquery": "^1.11.1",
     "react": "^0.11.0",
-    "showdown": "^0.3.1"
+    "marked": "^0.3.2"
   },
   "devDependencies": {
     "jsx-loader": "^0.11.0",
