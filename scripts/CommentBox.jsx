@@ -2,6 +2,12 @@
 
 module $ from 'jquery';
 module React from 'react';
+var Input = require('react-bootstrap/Input');
+var Button = require('react-bootstrap/Button');
+var Row = require('react-bootstrap/Row');
+var Col = require('react-bootstrap/Col');
+var Nav = require('react-bootstrap/Nav')
+var NavItem = require('react-bootstrap/NavItem')
 
 var marked = require("marked");
 
@@ -32,40 +38,60 @@ var CommentBox = React.createClass({
       }.bind(this)
     });
   },
-  handleCommentSubmit: function(comment) {
-    var comments = this.state.data;
-    comments.push(comment);
-    this.setState({data: comments}, function() {
-      // `setState` accepts a callback. To avoid (improbable) race condition,
-      // `we'll send the ajax request right after we optimistically set the new
-      // `state.
-      $.ajax({
-        url: this.props.url,
-        dataType: 'json',
-        type: 'POST',
-        data: comment,
-        success: function(data) {
-          this.setState({data: data});
-        }.bind(this),
-        error: function(xhr, status, err) {
-          console.error(this.props.url, status, err.toString());
-        }.bind(this)
-      });
+  emptyFormData:  { author: "", text: "" },
+  handleCommentSubmit: function() {
+    // `setState` accepts a callback. To avoid (improbable) race condition,
+    // `we'll send the ajax request right after we optimistically set the new
+    // `state.
+    this.setState({ajaxSending: true});
+    comment = this.state.formData;
+    $.ajax({
+      url: this.props.url,
+      dataType: 'json',
+      type: 'POST',
+      data: { comment: comment},
+      success: function(data) {
+        var comments = this.state.data;
+        comments.push(comment);
+        this.setState({ajaxSending: false, data: comments, formData: this.emptyFormData });
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+        this.setState({ajaxSending: false});
+      }.bind(this)
     });
   },
   getInitialState: function() {
-    return {data: []};
+    return {
+      data: [],
+      formMode: 0,
+      formData: this.emptyFormData,
+      ajaxSending: false
+    };
   },
   componentDidMount: function() {
     this.loadCommentsFromServer();
     setInterval(this.loadCommentsFromServer, this.props.pollInterval);
   },
+  handleSelect: function(selectedKey) {
+    this.setState({ formMode: selectedKey });
+  },
+  onFormChange: function(obj) {
+    this.setState({
+      formData: obj
+    })
+  },
   render: function() {
     return (
-      <div className="commentBox">
-        <h1>Comments</h1>
+      <div className="commentBox container">
+        <h1>Comments { this.state.ajaxSending ? "AJAX SENDING!" : "" }</h1>
+        <Nav bsStyle="pills" activeKey={this.state.formMode} onSelect={this.handleSelect}>
+          <NavItem key={0}>Horizontal Form</NavItem>
+          <NavItem key={1}>Stacked Form</NavItem>
+          <NavItem key={2}>Inline Form</NavItem>
+        </Nav>
         <CommentList data={this.state.data} />
-        <CommentForm onCommentSubmit={this.handleCommentSubmit} />
+        <CommentForm onCommentSubmit={this.handleCommentSubmit} formData={this.state.formData} formMode={this.state.formMode} onChange={this.onFormChange} ajaxSending={this.state.ajaxSending} />
       </div>
     );
   }
@@ -94,24 +120,74 @@ var CommentList = React.createClass({
 var CommentForm = React.createClass({
   handleSubmit: function(e) {
     e.preventDefault();
-    var author = this.refs.author.getDOMNode().value.trim();
-    var text = this.refs.text.getDOMNode().value.trim();
-    if (!text || !author) {
-      return;
-    }
-    this.props.onCommentSubmit({author: author, text: text});
-    this.refs.author.getDOMNode().value = '';
-    this.refs.text.getDOMNode().value = '';
+    this.props.onCommentSubmit();
     return;
   },
-  render: function() {
+  handleChange: function() {
+    // This could also be done using ReactLink:
+    // http://facebook.github.io/react/docs/two-way-binding-helpers.html
+    var props;
+    if (this.props.formMode == 2) {
+      props = {
+        author: this.refs.author.getDOMNode().value,
+        text: this.refs.text.getDOMNode().value
+      }
+    } else {
+      props = {
+        author: this.refs.author.getValue(),
+        text: this.refs.text.getValue()
+      }
+    }
+    this.props.onChange(props);
+  },
+  formHorizontal: function() {
     return (
-      <form className="commentForm" onSubmit={this.handleSubmit}>
-        <input type="text" placeholder="Your name" ref="author" />
-        <input type="text" placeholder="Say something..." ref="text" />
-        <input type="submit" value="Post" />
-      </form>
-    );
+      <div><hr/>
+        <form className="commentForm form-horizontal" onSubmit={this.handleSubmit}>
+          <Input type="text" label="Name" placeholder="Your Name" labelClassName="col-sm-2" wrapperClassName="col-sm-10" ref="author" value={this.props.formData.author} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+          <Input type="textarea" label="Text" placeholder="Say something..." labelClassName="col-sm-2" wrapperClassName="col-sm-10" ref="text"  value={this.props.formData.text} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+          <div className="form-group"><div className="col-sm-offset-2 col-sm-10"><input type="submit" className="btn btn-primary" value="Post" disabled={this.props.ajaxSending} /></div></div>
+        </form></div>
+      );
+  },
+  formStacked: function() {
+    return (
+      <div><hr/>
+        <form className="commentForm form" onSubmit={this.handleSubmit}>
+          <Input type="text" label="Name"  placeholder="Your Name" ref="author" value={this.props.formData.author} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+          <Input type="textarea" label="Text" placeholder="Say something..." ref="text" value={this.props.formData.text} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+          <input type="submit" className="btn btn-primary" value="Post" disabled={this.props.ajaxSending} />
+        </form></div>
+      );
+  },
+  formInline: function() {
+    return (
+      <div><hr/>
+        <form className="commentForm form" onSubmit={this.handleSubmit}>
+          <Input label="Inline Form" wrapperClassName="wrapper">
+            <Row>
+              <Col xs={3}>
+                <input type="text" className="form-control" placeholder="Your Name" ref="author" value={this.props.formData.author} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+              </Col>
+              <Col xs={8}>
+                <input type="text" className="form-control" placeholder="Say something..." ref="text" value={this.props.formData.text} onChange={this.handleChange} disabled={this.props.ajaxSending} />
+              </Col>
+              <Col xs={1}>
+                <input type="submit" className="btn btn-primary" value="Post" disabled={this.props.ajaxSending} />
+              </Col>
+            </Row>
+        </Input>
+        </form></div>
+      );
+  },
+  render: function() {
+    if (this.props.formMode == 0) {
+        return this.formHorizontal();
+    } else if (this.props.formMode == 1) {
+        return this.formStacked();
+    } else {
+        return this.formInline();
+    }
   }
 });
 

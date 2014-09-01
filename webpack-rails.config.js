@@ -1,3 +1,5 @@
+// Run like this
+// webpack -d --config webpack-rails.config.js && cp railsbuild/rails-bundle.js /Users/justin/j/react/react-rails-tutorial/app/assets/javascripts && cp railsbuild/rails-bundle.js.map /Users/justin/j/react/react-rails-tutorial/public
 
 module.exports = {
   devtool: "source-map",

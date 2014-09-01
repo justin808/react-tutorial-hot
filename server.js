@@ -2,6 +2,7 @@ var bodyParser = require('body-parser');
 var webpack = require('webpack');
 var WebpackDevServer = require('webpack-dev-server');
 var config = require('./webpack.hot.config');
+var sleep = require('sleep');
 
 var comments = [{author: 'Pete Hunt', text: 'Hey there!'},
   {author: 'Justin Gordon', text: 'Aloha from @railsonmaui'}
@@ -22,7 +23,11 @@ server.app.get('/comments.json', function(req, res) {
 });
 
 server.app.post('/comments.json', function(req, res) {
-  comments.push(req.body);
+  console.log("Processing comment: %j", req.body.comment);
+  console.log("(shhhh...napping 2 seconds)");
+  sleep.sleep(2);
+  console.log("Just got done with nap!");
+  comments.push(req.body.comment);
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(comments));
 });

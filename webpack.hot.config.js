@@ -6,7 +6,8 @@ module.exports = {
   entry: [
     'webpack-dev-server/client?http://localhost:3000',
     'webpack/hot/dev-server',
-    './scripts/example'
+    './scripts/example',
+    './scripts/rails_shims'
   ],
   output: {
     path: __dirname,
